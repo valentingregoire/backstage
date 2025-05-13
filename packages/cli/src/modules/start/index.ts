@@ -13,57 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Command } from 'commander';
+import { createCliPlugin } from '../../wiring/factory';
 import { lazy } from '../../lib/lazy';
 import { configOption } from '../config';
 
-export function registerRepoCommands(command: Command) {
-  command
-    .command('start')
-    .description('Starts packages in the repo for local development')
-    .argument(
-      '[packageNameOrPath...]',
-      'Run the specified package instead of the defaults.',
-    )
-    .option(
-      '--plugin <pluginId>',
-      'Start the dev entry-point for any matching plugin package in the repo',
-      (opt: string, opts: string[]) => (opts ? [...opts, opt] : [opt]),
-      Array<string>(),
-    )
-    .option(...configOption)
-    .option(
-      '--inspect [host]',
-      'Enable debugger in Node.js environments. Applies to backend package only',
-    )
-    .option(
-      '--inspect-brk [host]',
-      'Enable debugger in Node.js environments, breaking before code starts. Applies to backend package only',
-    )
-    .option(
-      '--require <path...>',
-      'Add a --require argument to the node process. Applies to backend package only',
-    )
-    .option('--link <path>', 'Link an external workspace for module resolution')
-    .action(lazy(() => import('./commands/repo/start'), 'command'));
-}
+export const startPlugin = createCliPlugin({
+  pluginId: 'start',
+  init: async reg => {
+    reg.addCommand({
+      path: ['package', 'start'],
+      description: 'Start a package for local development',
+      execute: async ({ args }) => {
+        const command = new Command();
 
-export function registerPackageCommands(command: Command) {
-  command
-    .command('start')
-    .description('Start a package for local development')
-    .option(...configOption)
-    .option('--role <name>', 'Run the command with an explicit package role')
-    .option('--check', 'Enable type checking and linting if available')
-    .option('--inspect [host]', 'Enable debugger in Node.js environments')
-    .option(
-      '--inspect-brk [host]',
-      'Enable debugger in Node.js environments, breaking before code starts',
-    )
-    .option(
-      '--require <path...>',
-      'Add a --require argument to the node process',
-    )
-    .option('--link <path>', 'Link an external workspace for module resolution')
-    .action(lazy(() => import('./commands/package/start'), 'command'));
-}
+        const defaultCommand = command
+          .option(...configOption)
+          .option(
+            '--role <name>',
+            'Run the command with an explicit package role',
+          )
+          .option('--check', 'Enable type checking and linting if available')
+          .option('--inspect [host]', 'Enable debugger in Node.js environments')
+          .option(
+            '--inspect-brk [host]',
+            'Enable debugger in Node.js environments, breaking before code starts',
+          )
+          .option(
+            '--require <path...>',
+            'Add a --require argument to the node process',
+          )
+          .option(
+            '--link <path>',
+            'Link an external workspace for module resolution',
+          )
+          .action(lazy(() => import('./commands/package/start'), 'command'));
+
+        await defaultCommand.parseAsync(args, { from: 'user' });
+      },
+    });
+
+    reg.addCommand({
+      path: ['repo', 'start'],
+      description: 'Starts packages in the repo for local development',
+      execute: async ({ args }) => {
+        const command = new Command();
+
+        const defaultCommand = command
+          .argument(
+            '[...packageNameOrPath]',
+            'Run the specified package instead of the defaults.',
+          )
+          .option(
+            '--plugin <pluginId>',
+            'Start the dev entry-point for any matching plugin package in the repo',
+            (opt: string, opts: string[]) => (opts ? [...opts, opt] : [opt]),
+            Array<string>(),
+          )
+          .option(...configOption)
+          .option(
+            '--inspect [host]',
+            'Enable debugger in Node.js environments. Applies to backend package only',
+          )
+          .option(
+            '--inspect-brk [host]',
+            'Enable debugger in Node.js environments, breaking before code starts. Applies to backend package only',
+          )
+          .option(
+            '--require <path...>',
+            'Add a --require argument to the node process. Applies to backend package only',
+          )
+          .option(
+            '--link <path>',
+            'Link an external workspace for module resolution',
+          )
+          .action(lazy(() => import('./commands/repo/start'), 'command'));
+
+        await defaultCommand.parseAsync(args, { from: 'user' });
+      },
+    });
+  },
+});
+
+export default startPlugin;
