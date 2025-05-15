@@ -17,7 +17,32 @@
 import { Command, Option } from 'commander';
 import { createCliPlugin } from '../../wiring/factory';
 import { lazy } from '../../lib/lazy';
-import { registerPackageCommands } from '.';
+
+export function registerPackageCommands(command: Command) {
+  command
+    .command('build')
+    .description('Build a package for production deployment or publishing')
+    .option('--role <name>', 'Run the command with an explicit package role')
+    .option(
+      '--minify',
+      'Minify the generated code. Does not apply to app package (app is minified by default).',
+    )
+    .option(
+      '--skip-build-dependencies',
+      'Skip the automatic building of local dependencies. Applies to backend packages only.',
+    )
+    .option(
+      '--stats',
+      'If bundle stats are available, write them to the output directory. Applies to app packages only.',
+    )
+    .option(
+      '--config <path>',
+      'Config files to load instead of app-config.yaml. Applies to app packages only.',
+      (opt: string, opts: string[]) => (opts ? [...opts, opt] : [opt]),
+      Array<string>(),
+    )
+    .action(lazy(() => import('./commands/package/build'), 'command'));
+}
 
 export const buildPlugin = createCliPlugin({
   pluginId: 'build',
