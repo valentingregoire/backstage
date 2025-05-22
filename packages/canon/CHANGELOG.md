@@ -1,5 +1,11 @@
 # @backstage/canon
 
+## 0.5.0-next.0
+
+### Minor Changes
+
+- 24b45ef: Fixes spacing props on layout components and aligned on naming for the Grid component. You should now call the Grid root component using <Grid.Root /> instead of just <Grid />.
+
 ## 0.4.0
 
 ### Minor Changes

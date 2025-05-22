@@ -1,5 +1,11 @@
 # @backstage/repo-tools
 
+## 0.13.4-next.0
+
+### Patch Changes
+
+- 2d20024: Fix an issue where errors were not printed to console when running `backstage-repo-tools schema openapi generate` without the `--watch` flag.
+
 ## 0.13.3
 
 ### Patch Changes
